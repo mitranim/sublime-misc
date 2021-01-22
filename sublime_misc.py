@@ -149,7 +149,7 @@ class misc_recent_folders(sublime_plugin.WindowCommand):
                 switch_to_folder(folders[index])
 
         self.window.show_quick_panel(
-            folders,
+            list(unexpand_paths(folders)),
             select,
             flags=sublime.MONOSPACE_FONT,
             placeholder='select folder',
@@ -180,3 +180,12 @@ def session_path():
         return session_path
 
     return None
+
+def unexpand_paths(paths):
+    home = pt.expanduser('~')
+
+    for path in paths:
+        if path.startswith(home):
+            yield pt.join('~', pt.relpath(path, home))
+        else:
+            yield path
