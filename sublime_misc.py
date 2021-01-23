@@ -5,12 +5,12 @@ import random
 import datetime
 from os import path as pt
 
-class async(sublime_plugin.TextCommand):
+class misc_async(sublime_plugin.TextCommand):
     def run(self, edit, command, args):
         sublime.set_timeout(lambda: self.view.run_command(command, args), 0)
 
-# Similar to ChainOfCommand, but has a single undo.
-class chain(sublime_plugin.TextCommand):
+# Similar to ChainOfCommand, but generates a single undo rather than multiple.
+class misc_chain(sublime_plugin.TextCommand):
     def run(self, edit, commands):
         for command in commands:
             self.view.window().run_command(*command)
@@ -25,7 +25,7 @@ class misc_gen_uuid_no_dashes(sublime_plugin.TextCommand):
         for region in self.view.sel():
             self.view.replace(edit, region, uuid.uuid4().hex)
 
-# TODO: option to pad seq with zeros
+# TODO: option to pad seq with zeros.
 class misc_gen_seq(sublime_plugin.TextCommand):
     def run(self, edit, start = 0):
         num = start
@@ -132,7 +132,7 @@ def next_eol(view):
 def first_sel(view):
     return view.sel()[0]
 
-class misc_recent_folders(sublime_plugin.WindowCommand):
+class misc_prompt_select_recent_folder(sublime_plugin.WindowCommand):
     def run(self):
         path = session_path()
         if not path:
@@ -156,7 +156,8 @@ class misc_recent_folders(sublime_plugin.WindowCommand):
         )
 
 def switch_to_folder(folder):
-    if folder in sublime.active_window().folders():
+    window = sublime.active_window()
+    if window and folder in window.folders():
         return
 
     for window in sublime.windows():
@@ -164,9 +165,10 @@ def switch_to_folder(folder):
             window.bring_to_front()
             return
 
-    sublime.run_command('new_window')
     window = sublime.active_window()
-    window.set_project_data({'folders': [{'path': folder}]})
+    if not window or len(window.folders()):
+        sublime.run_command('new_window')
+    sublime.active_window().set_project_data({'folders': [{'path': folder}]})
 
 def session_path():
     session_dir = pt.join(pt.dirname(sublime.packages_path()), 'Local')
