@@ -1,7 +1,8 @@
-import inspect
 from Default import exec
 
-if not '_AsyncProcess' in dict(inspect.getmembers(exec, inspect.isclass)):
+try:
+    exec._AsyncProcess
+except AttributeError:
     exec._AsyncProcess = exec.AsyncProcess
 
 class AsyncProcess(exec._AsyncProcess):
