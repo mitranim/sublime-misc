@@ -49,70 +49,12 @@ class misc_gen_datetime(sublime_plugin.TextCommand):
         for region in self.view.sel():
             self.view.replace(edit, region, text)
 
-# Should be activated inside a line comment by a hotkey. Continues the comment
-# on the previous or next line, auto-inserting the comment prefix if needed.
-# Shouldn't be used inside block comments.
-#
-# Originally based on: https://github.com/STealthy-and-haSTy/SublimeScraps/blob/master/plugins/wrap_text.py
-#
-# Note: the built-in 'insert' command preserves indentation.
-#
-# TODO:
-#
-#   * Look for the prefix in both directions around the caret.
-#   * Don't split up the prefix if activated inside of it. Move the caret to its
-#     start or end.
-#   * When activated just before the prefix, swap the order of prefix and
-#     newline.
-#   * When activated on an end-of-line comment preceded by code, abort.
-#
-# Bonus TODO: comment-aware "join lines".
-class misc_continue_comment(sublime_plugin.TextCommand):
-    def run(self, edit, forward=None):
-        view = self.view
-        prefix = line_comment_start(view)
-        if prefix:
-            prefix += ' '
-
-        if forward == True:
-            view.run_command('move_to', {'to': 'hardeol'})
-            view.run_command('insert', {'characters': '\n' + prefix})
-        elif forward == False:
-            view.run_command('move', {'by': 'lines', 'forward': False})
-            view.run_command('move_to', {'to': 'hardeol'})
-            view.run_command('insert', {'characters': '\n' + prefix})
-        else:
-            view.run_command('insert', {'characters': '\n' + prefix})
-
-def line_comment_start(view):
-    caret = first_sel(view).begin()
-    line_begin = view.line(caret).begin()
-    region = region_matching_selector(view, sublime.Region(line_begin, caret), 'comment punctuation - comment.block')
-    return region and view.substr(region) or ''
-
-def region_matching_selector(view, within_region, selector):
-    is_match = lambda pt: view.match_selector(pos, selector)
-
-    # Advance while the selector doesn't match.
-    pos = within_region.begin()
-    while pos < within_region.end() and not is_match(pos):
-        pos += 1
-
-    start_pos = pos
-
-    # Advance while the selector matches to find the extent the scope.
-    while pos < within_region.end() and is_match(pos):
-        pos += 1
-    if start_pos == pos:
-        return None
-    return sublime.Region(start_pos, pos)
-
-class context_line_selectors(sublime_plugin.EventListener):
+class misc_context_selectors(sublime_plugin.EventListener):
     def on_query_context(self, view, key, operator, operand, match_all):
-        if key == 'prev_line_eol_selector':
+        if key == 'misc_selector_prev_line_eol':
             index = prev_eol(view)
             return index >= 0 and view.match_selector(index, operand)
-        if key == 'next_line_eol_selector':
+        if key == 'misc_selector_next_line_eol':
             return view.match_selector(next_eol(view), operand)
         return None
 

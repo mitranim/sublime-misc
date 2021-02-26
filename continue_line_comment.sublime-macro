@@ -1,0 +1,4 @@
+[
+  {"command": "insert",         "args": {"characters": "\n"}},
+  {"command": "toggle_comment", "args": {"block": false}},
+]
