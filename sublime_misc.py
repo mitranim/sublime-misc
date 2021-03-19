@@ -133,3 +133,9 @@ def unexpand_paths(paths):
             yield pt.join('~', pt.relpath(path, home))
         else:
             yield path
+
+class misc_focus_last_view(sublime_plugin.WindowCommand):
+    def run(self):
+        views = self.window.views_in_group(self.window.active_group())
+        if len(views) > 0:
+            self.window.focus_view(views[-1])
