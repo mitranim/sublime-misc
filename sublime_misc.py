@@ -5,6 +5,9 @@ import random
 import datetime
 from os import path as pt
 
+PLUGIN_NAME = 'misc'
+PANEL_OUTPUT_NAME = 'output.' + PLUGIN_NAME
+
 class misc_async(sublime_plugin.TextCommand):
     def run(self, edit, command, args):
         sublime.set_timeout(lambda: self.view.run_command(command, args), 0)
@@ -139,3 +142,29 @@ class misc_focus_last_view(sublime_plugin.WindowCommand):
         views = self.window.views_in_group(self.window.active_group())
         if len(views) > 0:
             self.window.focus_view(views[-1])
+
+class misc_replace_content(sublime_plugin.TextCommand):
+    def run(self, edit, text):
+        view = self.view
+        view.replace(edit, sublime.Region(0, view.size()), text)
+        view.sel().clear()
+
+def panel_create(window):
+    return window.create_output_panel(PLUGIN_NAME)
+
+def panel_find(window):
+    return window.find_output_panel(PANEL_OUTPUT_NAME)
+
+def panel_ensure(window):
+    return panel_find(window) or panel_create(window)
+
+def panel_hide(window):
+    if window.active_panel() == PANEL_OUTPUT_NAME:
+        window.run_command('panel_hide', {'panel': PANEL_OUTPUT_NAME})
+
+def panel_show(window):
+    window.run_command('show_panel', {'panel': PANEL_OUTPUT_NAME})
+
+def panel_print(window, msg):
+    panel_ensure(window).run_command('misc_replace_content', {'text': msg})
+    panel_show(window)
