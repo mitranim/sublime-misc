@@ -3,6 +3,7 @@ import sublime_plugin
 import uuid
 import random
 import datetime
+import os
 from os import path as pt
 
 PLUGIN_NAME = 'misc'
@@ -101,6 +102,9 @@ class misc_prompt_select_recent_folder(sublime_plugin.WindowCommand):
         )
 
 def switch_to_folder(folder):
+    if os.name == 'nt':
+        folder = convert_to_native_path(folder)
+
     window = sublime.active_window()
     if window and folder in window.folders():
         return
@@ -168,3 +172,38 @@ def panel_show(window):
 def panel_print(window, msg):
     panel_ensure(window).run_command('misc_replace_content', {'text': msg})
     panel_show(window)
+
+# Port of ST internal function: https://discord.com/channels/280102180189634562/280157067396775936/844876756280147988
+def convert_to_native_path(path: str) -> str:
+    path = bytearray(path, 'utf-8')
+
+    if len(path) > 1 and path[0] == ord('/'):
+        if path[1] == ord('?'):
+            path[1] = ord('\\')
+        elif path[1] != ord('/'):
+            path[0] = path[1]
+            path[1] = ord(':')
+
+    path = path.decode('utf-8')
+    return path.replace('/', '\\')
+
+# Port of ST internal function: https://discord.com/channels/280102180189634562/280157067396775936/844876756280147988
+def convert_from_native_path(path: str) -> str:
+    path = bytearray(path, 'utf-8')
+
+    if len(path) > 1:
+        if path[0] == ord('\\') and path[1] == ord('\\'):
+            # Convert from \\foo to /?foo
+            path[1] = ord('?')
+        elif path[1] == ord(':'):
+            # Convert from C:\foo to /c/foo
+            path[1] = path[0]
+            path[0] = ord('/')
+
+    path = path.decode('utf-8')
+    path = path.replace('\\', '/')
+
+    if len(path) > 0 and path[0] == '~':
+        path = pt.expanduser(path)
+
+    return path

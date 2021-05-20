@@ -30,3 +30,5 @@ To enable the comment continuation feature, add the following to your keymap:
 ## License
 
 https://unlicense.org
+
+Small pieces of code were ported from ST internals (C++) courteously provided by ST creator. Different conditions might apply.
