@@ -53,6 +53,21 @@ class misc_gen_datetime(sublime_plugin.TextCommand):
         for region in self.view.sel():
             self.view.replace(edit, region, text)
 
+class misc_wrap(sublime_plugin.TextCommand):
+    def run(self, edit, begin = '', end = ''):
+        view = self.view
+        if not begin and not end:
+            return
+
+        sel = view.sel()
+
+        for region in list(reversed(sel)):
+            sel_set(sel, region.end())
+            view.run_command('insert', {'characters': end})
+
+            sel_set(sel, region.begin())
+            view.run_command('insert', {'characters': begin})
+
 class misc_context_selectors(sublime_plugin.EventListener):
     def on_query_context(self, view, key, operator, operand, match_all):
         if key == 'misc_selector_prev_line_eol':
@@ -207,3 +222,7 @@ def convert_from_native_path(path: str) -> str:
         path = pt.expanduser(path)
 
     return path
+
+def sel_set(sel, point):
+    sel.clear()
+    sel.add(sublime.Region(point, point))
