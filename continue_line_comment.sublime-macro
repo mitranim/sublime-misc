@@ -1,3 +1,13 @@
+/*
+Usage:
+
+  {
+    "keys": ["enter"],
+    "command": "run_macro_file",
+    "args": {"file": "res://Packages/sublime-misc/continue_line_comment.sublime-macro"},
+    "context": [{"key": "selector", "operand": "comment.line - punctuation.definition.comment"}],
+  },
+*/
 [
   {"command": "insert",         "args": {"characters": "\n"}},
   {"command": "toggle_comment", "args": {"block": false}},

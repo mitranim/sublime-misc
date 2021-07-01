@@ -1,0 +1,22 @@
+/*
+Usage:
+
+  {
+    "keys": ["alt+primary+forward_slash"],
+    "command": "run_macro_file",
+    "args": {"file": "res://Packages/sublime-misc/comment_to_block.sublime-macro"},
+    "context": [{"key": "selector", "operator": "equal", "operand": "comment.line", "match_all": true}],
+  },
+  {
+    "keys": ["alt+primary+forward_slash"],
+    "command": "",
+    "context": [{"key": "selector", "operator": "equal", "operand": "comment.block", "match_all": true}],
+  },
+*/
+[
+  {"command": "expand_selection", "args": {"to": "scope"}},
+  {"command": "move",             "args": {"by": "characters", "forward": false, "extend": true}},
+  {"command": "toggle_comment",   "args": {"block": true}},
+  {"command": "toggle_comment",   "args": {"block": true}},
+  {"command": "misc_wrap",        "args": {"begin": "\n", "end": "\n"}},
+]
