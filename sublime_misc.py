@@ -6,8 +6,7 @@ import datetime
 import os
 from os import path as pt
 
-PLUGIN_NAME = 'misc'
-PANEL_OUTPUT_NAME = 'output.' + PLUGIN_NAME
+PANEL_NAME = 'misc.panel'
 
 class misc_async(sublime_plugin.TextCommand):
     def run(self, edit, command, args):
@@ -169,20 +168,20 @@ class misc_replace_content(sublime_plugin.TextCommand):
         view.sel().clear()
 
 def panel_create(window):
-    return window.create_output_panel(PLUGIN_NAME)
+    return window.create_output_panel(PANEL_NAME)
 
 def panel_find(window):
-    return window.find_output_panel(PANEL_OUTPUT_NAME)
+    return window.find_output_panel(PANEL_NAME)
 
 def panel_ensure(window):
     return panel_find(window) or panel_create(window)
 
 def panel_hide(window):
-    if window.active_panel() == PANEL_OUTPUT_NAME:
-        window.run_command('panel_hide', {'panel': PANEL_OUTPUT_NAME})
+    if window.active_panel() == PANEL_NAME:
+        window.run_command('panel_hide', {'panel': PANEL_NAME})
 
 def panel_show(window):
-    window.run_command('show_panel', {'panel': PANEL_OUTPUT_NAME})
+    window.run_command('show_panel', {'panel': PANEL_NAME})
 
 def panel_print(window, msg):
     panel_ensure(window).run_command('misc_replace_content', {'text': msg})
@@ -226,3 +225,15 @@ def convert_from_native_path(path: str) -> str:
 def sel_set(sel, point):
     sel.clear()
     sel.add(sublime.Region(point, point))
+
+# TODO: display error in panel.
+class misc_eval(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        for reg in view.sel():
+            text = view.substr(reg)
+            if not text:
+                continue
+            view.replace(edit, reg, str(eval(text)))
+
+class misc_nop(sublime_plugin.TextCommand): pass
