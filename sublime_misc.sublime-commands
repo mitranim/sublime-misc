@@ -10,4 +10,6 @@
   {"caption": "Misc: comments: auto",          "command": "misc_comments_auto"},
   {"caption": "Misc: recent folders",          "command": "misc_prompt_select_recent_folder"},
   {"caption": "Misc: eval selection",          "command": "misc_eval"},
+  {"caption": "Misc: unquote",                 "command": "misc_unquote"},
+  {"caption": "Misc: cycle quote",             "command": "misc_cycle_quote"},
 ]

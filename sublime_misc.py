@@ -5,6 +5,7 @@ import random
 import datetime
 import os
 from os import path as pt
+from . import sublime_misc_util as u
 
 PANEL_NAME = 'misc.panel'
 
@@ -20,37 +21,41 @@ class misc_chain(sublime_plugin.TextCommand):
 
 class misc_gen_uuid(sublime_plugin.TextCommand):
     def run(self, edit):
-        for region in self.view.sel():
-            self.view.replace(edit, region, str(uuid.uuid4()))
+        view = self.view
+        for reg in view.sel():
+            view.replace(edit, reg, str(uuid.uuid4()))
 
 class misc_gen_uuid_no_dashes(sublime_plugin.TextCommand):
     def run(self, edit):
-        for region in self.view.sel():
-            self.view.replace(edit, region, uuid.uuid4().hex)
+        view = self.view
+        for reg in view.sel():
+            view.replace(edit, reg, uuid.uuid4().hex)
 
 # TODO: option to pad seq with zeros.
 class misc_gen_seq(sublime_plugin.TextCommand):
     def run(self, edit, start = 0):
+        view = self.view
         num = start
-        for region in self.view.sel():
-            self.view.replace(edit, region, str(num))
+        for reg in view.sel():
+            view.replace(edit, reg, str(num))
             num += 1
-
-hex_chars = '0123456789abcdef'
 
 class misc_gen_hex(sublime_plugin.TextCommand):
     def run(self, edit):
-        for region in self.view.sel():
-            start = min(region.a, region.b)
-            end = max(region.a, region.b)
-            text = ''.join(random.choice(hex_chars) for _ in range(end - start))
-            self.view.replace(edit, region, text)
+        view = self.view
+        for reg in view.sel():
+            start = min(reg.a, reg.b)
+            end = max(reg.a, reg.b)
+            view.replace(edit, reg, ''.join(
+                random.choice('0123456789abcdef') for _ in range(end - start)
+            ))
 
 class misc_gen_datetime(sublime_plugin.TextCommand):
     def run(self, edit):
+        view = self.view
         text = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M%:%SZ')
-        for region in self.view.sel():
-            self.view.replace(edit, region, text)
+        for reg in view.sel():
+            view.replace(edit, reg, text)
 
 class misc_wrap(sublime_plugin.TextCommand):
     def run(self, edit, begin = '', end = ''):
@@ -60,11 +65,11 @@ class misc_wrap(sublime_plugin.TextCommand):
 
         sel = view.sel()
 
-        for region in list(reversed(sel)):
-            sel_set(sel, region.end())
+        for reg in list(reversed(sel)):
+            sel_set(sel, reg.end())
             view.run_command('insert', {'characters': end})
 
-            sel_set(sel, region.begin())
+            sel_set(sel, reg.begin())
             view.run_command('insert', {'characters': begin})
 
 class misc_context_selectors(sublime_plugin.EventListener):
@@ -231,9 +236,18 @@ class misc_eval(sublime_plugin.TextCommand):
     def run(self, edit):
         view = self.view
         for reg in view.sel():
-            text = view.substr(reg)
-            if not text:
-                continue
-            view.replace(edit, reg, str(eval(text)))
+            src = view.substr(reg)
+            if src:
+                view.replace(edit, reg, str(eval(src)))
 
-class misc_nop(sublime_plugin.TextCommand): pass
+class misc_unquote(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        for reg in view.sel():
+            view.replace(edit, reg, u.unquote(view.substr(reg)))
+
+class misc_cycle_quote(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        for reg in view.sel():
+            view.replace(edit, reg, u.cycle_quote(view.substr(reg)))
