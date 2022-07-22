@@ -251,3 +251,16 @@ class misc_cycle_quote(sublime_plugin.TextCommand):
         view = self.view
         for reg in view.sel():
             view.replace(edit, reg, u.cycle_quote(view.substr(reg)))
+
+class misc_unwrap1(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        sel = view.sel()
+        for reg in sel:
+            view.replace(edit, reg, u.unwrap(view.substr(reg), 1))
+
+        for reg in sel:
+            beg = min(reg.begin(), reg.end()) - 1
+            end = max(reg.begin(), reg.end()) + 1
+            if end - beg > 2:
+                sel.add(sublime.Region(beg, end))
