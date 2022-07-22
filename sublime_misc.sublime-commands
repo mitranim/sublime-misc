@@ -12,4 +12,5 @@
   {"caption": "Misc: eval selection",          "command": "misc_eval"},
   {"caption": "Misc: unquote",                 "command": "misc_unquote"},
   {"caption": "Misc: cycle quote",             "command": "misc_cycle_quote"},
+  {"caption": "Misc: unwrap1",                 "command": "misc_unwrap1"},
 ]

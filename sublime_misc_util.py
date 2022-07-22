@@ -48,3 +48,6 @@ def cycle_quote(src: str):
     if len(QUOTE_DELIMS):
         return QUOTE_DELIMS[0].wrap(src)
     return src
+
+def unwrap(src: str, ind):
+    return src[ind:-ind]
