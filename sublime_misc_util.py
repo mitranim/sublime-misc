@@ -49,5 +49,5 @@ def cycle_quote(src: str):
         return QUOTE_DELIMS[0].wrap(src)
     return src
 
-def unwrap(src: str, ind):
+def unwrap(src: str, ind: int):
     return src[ind:-ind]

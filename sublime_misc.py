@@ -58,19 +58,18 @@ class misc_gen_datetime(sublime_plugin.TextCommand):
             view.replace(edit, reg, text)
 
 class misc_wrap(sublime_plugin.TextCommand):
-    def run(self, edit, begin = '', end = ''):
+    def run(self, edit, pre = '', suf = ''):
         view = self.view
-        if not begin and not end:
+        if not pre and not suf:
             return
 
         sel = view.sel()
 
         for reg in list(reversed(sel)):
-            sel_set(sel, reg.end())
-            view.run_command('insert', {'characters': end})
-
-            sel_set(sel, reg.begin())
-            view.run_command('insert', {'characters': begin})
+            sel.subtract(reg)
+            view.replace(edit, sublime.Region(reg.end(), reg.end()), suf)
+            view.replace(edit, sublime.Region(reg.begin(), reg.begin()), pre)
+            sel.add(sublime.Region(reg.begin() + len(pre), reg.end() + len(pre)))
 
 class misc_context_selectors(sublime_plugin.EventListener):
     def on_query_context(self, view, key, operator, operand, match_all):
@@ -253,14 +252,20 @@ class misc_cycle_quote(sublime_plugin.TextCommand):
             view.replace(edit, reg, u.cycle_quote(view.substr(reg)))
 
 class misc_unwrap1(sublime_plugin.TextCommand):
-    def run(self, edit):
+    def run(self, edit, size=1, expand=False, empty=False):
         view = self.view
         sel = view.sel()
-        for reg in sel:
-            view.replace(edit, reg, u.unwrap(view.substr(reg), 1))
 
-        for reg in sel:
-            beg = min(reg.begin(), reg.end()) - 1
-            end = max(reg.begin(), reg.end()) + 1
-            if end - beg > 2:
-                sel.add(sublime.Region(beg, end))
+        for reg in reversed(sel):
+            if not len(reg):
+                if empty:
+                    view.erase(edit, sublime.Region(reg.begin() - size, reg.end() + size))
+                continue
+
+            if expand:
+                sel.subtract(reg)
+
+            view.replace(edit, reg, u.unwrap(view.substr(reg), size))
+
+            if expand:
+                sel.add(sublime.Region(reg.begin() - size, reg.end() - size))
