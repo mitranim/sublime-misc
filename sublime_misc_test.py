@@ -1,5 +1,5 @@
 import unittest as ut
-import sublime_misc_util as u
+from . import sublime_misc_util as u
 
 class test_main(ut.TestCase):
     def test_unquote(t):
