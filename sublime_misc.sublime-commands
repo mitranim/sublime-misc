@@ -13,4 +13,5 @@
   {"caption": "Misc: unquote",                 "command": "misc_unquote"},
   {"caption": "Misc: cycle quote",             "command": "misc_cycle_quote"},
   {"caption": "Misc: unwrap1",                 "command": "misc_unwrap1"},
+  {"caption": "Misc: JSON unwrap",             "command": "misc_json_unwrap"},
 ]

@@ -269,3 +269,11 @@ class misc_unwrap1(sublime_plugin.TextCommand):
 
             if expand:
                 sel.add(sublime.Region(reg.begin() - size, reg.end() - size))
+
+class misc_json_unwrap(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        sel = view.sel()
+
+        for reg in reversed(sel):
+            view.replace(edit, reg, sublime.decode_value(view.substr(reg)))

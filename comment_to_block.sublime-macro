@@ -18,5 +18,5 @@ Usage:
   {"command": "move",             "args": {"by": "characters", "forward": false, "extend": true}},
   {"command": "toggle_comment",   "args": {"block": true}},
   {"command": "toggle_comment",   "args": {"block": true}},
-  {"command": "misc_wrap",        "args": {"begin": "\n", "end": "\n"}},
+  {"command": "misc_wrap",        "args": {"pre": "\n", "suf": "\n"}},
 ]
