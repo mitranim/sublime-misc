@@ -273,7 +273,14 @@ class misc_unwrap1(sublime_plugin.TextCommand):
 class misc_json_unwrap(sublime_plugin.TextCommand):
     def run(self, edit):
         view = self.view
-        sel = view.sel()
-
-        for reg in reversed(sel):
+        for reg in reversed(view.sel()):
             view.replace(edit, reg, sublime.decode_value(view.substr(reg)))
+
+class misc_css_classes_from_html(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        for reg in reversed(view.sel()):
+            view.replace(edit, reg, css_classes_from_html(view.substr(reg)))
+
+def css_classes_from_html(src):
+    return ', '.join('.' + val for val in src.split())
