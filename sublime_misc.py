@@ -284,3 +284,5 @@ class misc_css_classes_from_html(sublime_plugin.TextCommand):
 
 def css_classes_from_html(src):
     return ', '.join('.' + val for val in src.split())
+
+class misc_nop(sublime_plugin.TextCommand): pass
