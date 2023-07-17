@@ -276,13 +276,47 @@ class misc_json_unwrap(sublime_plugin.TextCommand):
         for reg in reversed(view.sel()):
             view.replace(edit, reg, sublime.decode_value(view.substr(reg)))
 
-class misc_css_classes_from_html(sublime_plugin.TextCommand):
+class misc_nop(sublime_plugin.TextCommand): pass
+
+class misc_css_tokens_to_classes(sublime_plugin.TextCommand):
     def run(self, edit):
         view = self.view
         for reg in reversed(view.sel()):
-            view.replace(edit, reg, css_classes_from_html(view.substr(reg)))
+            view.replace(edit, reg, css_tokens_to_classes(view.substr(reg)))
 
-def css_classes_from_html(src):
+def css_tokens_to_classes(src):
     return ', '.join('.' + val for val in src.split())
 
-class misc_nop(sublime_plugin.TextCommand): pass
+class misc_css_tokens_to_placeholders(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        for reg in reversed(view.sel()):
+            view.replace(edit, reg, css_tokens_to_placeholders(view.substr(reg)))
+
+def css_tokens_to_placeholders(src):
+    return ', '.join('%' + val for val in src.split())
+
+class misc_url_decode(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        for reg in reversed(view.sel()):
+            view.replace(edit, reg, url_decode(view.substr(reg)))
+
+def url_decode(src):
+    import urllib.parse as up
+    return repr(up.urlparse(src))
+
+class misc_url_decode_query(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+        for reg in reversed(view.sel()):
+            view.replace(edit, reg, url_decode_query(view.substr(reg)))
+
+def url_decode_query(src):
+    import urllib.parse as up
+
+    return '\n'.join(
+        (key + '=' + val)
+        for (key, val)
+        in up.parse_qsl(up.urlparse(src).query)
+    )
