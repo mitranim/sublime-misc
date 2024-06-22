@@ -9,6 +9,8 @@ Usage:
   },
 */
 [
-  {"command": "insert",         "args": {"characters": "\n"}},
+  {"command": "insert_snippet", "args": {"contents": "$0\t\t"}},
+  {"command": "delete_word", "args": {"forward": true, "sub_words": true}},
+  {"command": "insert", "args": {"characters": "\n"}},
   {"command": "toggle_comment", "args": {"block": false}},
 ]

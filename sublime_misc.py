@@ -2,7 +2,6 @@ import sublime
 import sublime_plugin
 import uuid
 import random
-import datetime
 import os
 from os import path as pt
 from . import sublime_misc_util as u
@@ -19,17 +18,27 @@ class misc_chain(sublime_plugin.TextCommand):
         for command in commands:
             self.view.window().run_command(*command)
 
-class misc_gen_uuid(sublime_plugin.TextCommand):
+class text_command_replace_selections(sublime_plugin.TextCommand):
     def run(self, edit):
         view = self.view
-        for reg in view.sel():
-            view.replace(edit, reg, str(uuid.uuid4()))
 
-class misc_gen_uuid_no_dashes(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in view.sel():
-            view.replace(edit, reg, uuid.uuid4().hex)
+        for reg in reversed(view.sel()):
+            src = view.substr(reg)
+            out = self.replacement(reg)
+
+            if src != out:
+                view.replace(edit, reg, out)
+
+    def replacement(self, reg):
+        return self.view.substr(reg)
+
+class misc_gen_uuid(text_command_replace_selections):
+    def replacement(_self, _reg):
+        return str(uuid.uuid4())
+
+class misc_gen_uuid_no_dashes(text_command_replace_selections):
+    def replacement(_self, _reg):
+        return uuid.uuid4().hex
 
 # TODO: option to pad seq with zeros.
 class misc_gen_seq(sublime_plugin.TextCommand):
@@ -40,36 +49,52 @@ class misc_gen_seq(sublime_plugin.TextCommand):
             view.replace(edit, reg, str(num))
             num += 1
 
-class misc_gen_hex(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in view.sel():
-            start = min(reg.a, reg.b)
-            end = max(reg.a, reg.b)
-            view.replace(edit, reg, ''.join(
-                random.choice('0123456789abcdef') for _ in range(end - start)
-            ))
+class misc_gen_hex(text_command_replace_selections):
+    def replacement(self, reg):
+        start = min(reg.a, reg.b)
+        end = max(reg.a, reg.b)
+        return ''.join(
+            random.choice('0123456789abcdef') for _ in range(end - start)
+        )
 
-class misc_gen_datetime(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        text = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M%:%SZ')
-        for reg in view.sel():
-            view.replace(edit, reg, text)
+class misc_gen_datetime(text_command_replace_selections):
+    def replacement(_self, _reg):
+        from datetime import datetime
+        return datetime.utcnow().strftime('%Y-%m-%dT%H:%M%:%SZ')
 
-class misc_wrap(sublime_plugin.TextCommand):
-    def run(self, edit, pre = '', suf = ''):
-        view = self.view
-        if not pre and not suf:
+class misc_prefix(sublime_plugin.TextCommand):
+    def run(self, edit, prefix = ''):
+        if not prefix:
             return
 
+        view = self.view
         sel = view.sel()
 
-        for reg in list(reversed(sel)):
-            sel.subtract(reg)
-            view.replace(edit, sublime.Region(reg.end(), reg.end()), suf)
-            view.replace(edit, sublime.Region(reg.begin(), reg.begin()), pre)
-            sel.add(sublime.Region(reg.begin() + len(pre), reg.end() + len(pre)))
+        for reg in reversed(sel):
+            view.replace(edit, sublime.Region(reg.begin(), reg.begin()), prefix)
+
+class misc_suffix(sublime_plugin.TextCommand):
+    def run(self, edit, suffix = ''):
+        if not suffix:
+            return
+
+        view = self.view
+        sel = view.sel()
+
+        for reg in reversed(sel):
+            view.replace(edit, sublime.Region(reg.end(), reg.end()), suffix)
+
+class misc_wrap(sublime_plugin.TextCommand):
+    def run(self, edit, prefix = '', suffix = ''):
+        if not prefix and not suffix:
+            return
+
+        view = self.view
+        sel = view.sel()
+
+        for reg in reversed(sel):
+            view.replace(edit, sublime.Region(reg.end(), reg.end()), suffix)
+            view.replace(edit, sublime.Region(reg.begin(), reg.begin()), prefix)
 
 class misc_context_selectors(sublime_plugin.EventListener):
     def on_query_context(self, view, key, operator, operand, match_all):
@@ -231,7 +256,7 @@ def sel_set(sel, point):
     sel.add(sublime.Region(point, point))
 
 # TODO: display error in panel.
-class misc_eval(sublime_plugin.TextCommand):
+class misc_eval(text_command_replace_selections):
     def run(self, edit):
         view = self.view
         for reg in view.sel():
@@ -239,24 +264,20 @@ class misc_eval(sublime_plugin.TextCommand):
             if src:
                 view.replace(edit, reg, str(eval(src)))
 
-class misc_unquote(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in view.sel():
-            view.replace(edit, reg, u.unquote(view.substr(reg)))
+class misc_unquote(text_command_replace_selections):
+    def replacement(self, reg):
+        return u.unquote(self.view.substr(reg))
 
-class misc_cycle_quote(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in view.sel():
-            view.replace(edit, reg, u.cycle_quote(view.substr(reg)))
+class misc_cycle_quote(text_command_replace_selections):
+    def replacement(self, reg):
+        return u.cycle_quote(self.view.substr(reg))
 
 class misc_unwrap1(sublime_plugin.TextCommand):
     def run(self, edit, size=1, expand=False, empty=False):
         view = self.view
         sel = view.sel()
 
-        for reg in reversed(sel):
+        for reg in list(reversed(sel)):
             if not len(reg):
                 if empty:
                     view.erase(edit, sublime.Region(reg.begin() - size, reg.end() + size))
@@ -270,47 +291,41 @@ class misc_unwrap1(sublime_plugin.TextCommand):
             if expand:
                 sel.add(sublime.Region(reg.begin() - size, reg.end() - size))
 
-class misc_json_unwrap(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in reversed(view.sel()):
-            view.replace(edit, reg, sublime.decode_value(view.substr(reg)))
+class misc_json_string_decode(text_command_replace_selections):
+    def replacement(self, reg):
+        return sublime.decode_value(self.view.substr(reg))
+
+class misc_json_string_encode(text_command_replace_selections):
+    def replacement(self, reg):
+        return sublime.encode_value(self.view.substr(reg))
 
 class misc_nop(sublime_plugin.TextCommand): pass
 
-class misc_css_tokens_to_classes(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in reversed(view.sel()):
-            view.replace(edit, reg, css_tokens_to_classes(view.substr(reg)))
+class misc_css_tokens_to_classes(text_command_replace_selections):
+    def replacement(self, reg):
+        return css_tokens_to_classes(self.view.substr(reg))
 
 def css_tokens_to_classes(src):
     return ', '.join('.' + val for val in src.split())
 
-class misc_css_tokens_to_placeholders(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in reversed(view.sel()):
-            view.replace(edit, reg, css_tokens_to_placeholders(view.substr(reg)))
+class misc_css_tokens_to_placeholders(text_command_replace_selections):
+    def replacement(self, reg):
+        return css_tokens_to_placeholders(self.view.substr(reg))
 
 def css_tokens_to_placeholders(src):
     return ', '.join('%' + val for val in src.split())
 
-class misc_url_decode(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in reversed(view.sel()):
-            view.replace(edit, reg, url_decode(view.substr(reg)))
+class misc_url_decode(text_command_replace_selections):
+    def replacement(self, reg):
+        return url_decode(self.view.substr(reg))
 
 def url_decode(src):
     import urllib.parse as up
     return repr(up.urlparse(src))
 
-class misc_url_decode_query(sublime_plugin.TextCommand):
-    def run(self, edit):
-        view = self.view
-        for reg in reversed(view.sel()):
-            view.replace(edit, reg, url_decode_query(view.substr(reg)))
+class misc_url_decode_query(text_command_replace_selections):
+    def replacement(self, reg):
+        return url_decode_query(self.view.substr(reg))
 
 def url_decode_query(src):
     import urllib.parse as up
