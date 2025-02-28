@@ -335,3 +335,40 @@ def url_decode_query(src):
         for (key, val)
         in up.parse_qsl(up.urlparse(src).query)
     )
+
+class misc_find_dup_lines(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+
+        for reg in reversed(view.sel()):
+            src = view.substr(reg)
+            lines = src.splitlines()
+            dupes = []
+            counts = {}
+
+            for line in lines:
+                if line in counts:
+                    counts[line] += 1
+                else:
+                    counts[line] = 1
+
+                if counts[line] == 2:
+                    dupes.append(line)
+
+            out = "\n".join(
+                str(counts[line]) + " " + line
+                for line in dupes
+            )
+
+            if src != out:
+                view.replace(edit, reg, out)
+
+class misc_base64_decode(text_command_replace_selections):
+    def replacement(self, reg):
+        import base64
+        return base64.b64decode(self.view.substr(reg)).decode("utf-8")
+
+class misc_base64_encode(text_command_replace_selections):
+    def replacement(self, reg):
+        import base64
+        return base64.b64encode(self.view.substr(reg).encode("utf-8")).decode("utf-8")

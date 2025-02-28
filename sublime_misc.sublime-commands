@@ -19,4 +19,7 @@
   {"caption": "Misc: CSS: tokens to placeholders", "command": "misc_css_tokens_to_placeholders"},
   {"caption": "Misc: URL: decode", "command": "misc_url_decode"},
   {"caption": "Misc: URL: decode query", "command": "misc_url_decode_query"},
+  {"caption": "Misc: URL: find dup lines", "command": "misc_find_dup_lines"},
+  {"caption": "Misc: base64: decode", "command": "misc_base64_decode"},
+  {"caption": "Misc: base64: encode", "command": "misc_base64_encode"},
 ]
